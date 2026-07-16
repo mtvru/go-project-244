@@ -1,49 +1,49 @@
-package formatters
+package formatter
 
 import (
 	"fmt"
 	"sort"
 	"strings"
 
-	"code/differ"
+	"code/internal/differ"
 )
 
 const indentSize = 4
 
-func stylish(nodes []differ.Node) string {
+func stylish(nodes []*differ.DiffNode) string {
 	return "{\n" + formatNodes(nodes, 1) + "}"
 }
 
-func formatNodes(nodes []differ.Node, depth int) string {
+func formatNodes(nodes []*differ.DiffNode, depth int) string {
 	var builder strings.Builder
 	indent := strings.Repeat(" ", depth*indentSize-2)
 
 	for _, node := range nodes {
 		switch node.Type {
-		case differ.Nested:
+		case differ.TypeNested:
 			fmt.Fprintf(&builder, "%s  %s: %s\n",
 				indent, node.Key, formatChildren(node.Children, depth))
-		case differ.Unchanged:
+		case differ.TypeUnchanged:
 			fmt.Fprintf(&builder, "%s  %s: %s\n",
-				indent, node.Key, formatValue(node.OldValue, depth))
-		case differ.Added:
+				indent, node.Key, formatValue(node.Value1, depth))
+		case differ.TypeAdded:
 			fmt.Fprintf(&builder, "%s+ %s: %s\n",
-				indent, node.Key, formatValue(node.NewValue, depth))
-		case differ.Removed:
+				indent, node.Key, formatValue(node.Value2, depth))
+		case differ.TypeDeleted:
 			fmt.Fprintf(&builder, "%s- %s: %s\n",
-				indent, node.Key, formatValue(node.OldValue, depth))
-		case differ.Updated:
+				indent, node.Key, formatValue(node.Value1, depth))
+		case differ.TypeChanged:
 			fmt.Fprintf(&builder, "%s- %s: %s\n",
-				indent, node.Key, formatValue(node.OldValue, depth))
+				indent, node.Key, formatValue(node.Value1, depth))
 			fmt.Fprintf(&builder, "%s+ %s: %s\n",
-				indent, node.Key, formatValue(node.NewValue, depth))
+				indent, node.Key, formatValue(node.Value2, depth))
 		}
 	}
 
 	return builder.String()
 }
 
-func formatChildren(nodes []differ.Node, depth int) string {
+func formatChildren(nodes []*differ.DiffNode, depth int) string {
 	closingIndent := strings.Repeat(" ", depth*indentSize)
 	return "{\n" + formatNodes(nodes, depth+1) + closingIndent + "}"
 }

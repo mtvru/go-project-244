@@ -5,10 +5,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"code/differ"
+	"code/internal/differ"
 )
 
-func TestBuildDiffSortsAndClassifies(t *testing.T) {
+func TestDiffSortsAndClassifies(t *testing.T) {
 	data1 := map[string]interface{}{
 		"host":    "hexlet.io",
 		"timeout": 50,
@@ -20,7 +20,7 @@ func TestBuildDiffSortsAndClassifies(t *testing.T) {
 		"verbose": true,
 	}
 
-	nodes := differ.BuildDiff(data1, data2)
+	nodes := differ.Diff(data1, data2)
 
 	keys := make([]string, 0, len(nodes))
 	for _, node := range nodes {
@@ -28,18 +28,18 @@ func TestBuildDiffSortsAndClassifies(t *testing.T) {
 	}
 	assert.Equal(t, []string{"host", "proxy", "timeout", "verbose"}, keys)
 
-	byKey := map[string]differ.Node{}
+	byKey := map[string]*differ.DiffNode{}
 	for _, node := range nodes {
 		byKey[node.Key] = node
 	}
 
-	assert.Equal(t, differ.Unchanged, byKey["host"].Type)
-	assert.Equal(t, differ.Removed, byKey["proxy"].Type)
-	assert.Equal(t, differ.Updated, byKey["timeout"].Type)
-	assert.Equal(t, differ.Added, byKey["verbose"].Type)
+	assert.Equal(t, differ.TypeUnchanged, byKey["host"].Type)
+	assert.Equal(t, differ.TypeDeleted, byKey["proxy"].Type)
+	assert.Equal(t, differ.TypeChanged, byKey["timeout"].Type)
+	assert.Equal(t, differ.TypeAdded, byKey["verbose"].Type)
 }
 
-func TestBuildDiffNested(t *testing.T) {
+func TestDiffNested(t *testing.T) {
 	data1 := map[string]interface{}{
 		"group": map[string]interface{}{"a": 1},
 	}
@@ -47,10 +47,10 @@ func TestBuildDiffNested(t *testing.T) {
 		"group": map[string]interface{}{"a": 2},
 	}
 
-	nodes := differ.BuildDiff(data1, data2)
+	nodes := differ.Diff(data1, data2)
 
 	assert.Len(t, nodes, 1)
-	assert.Equal(t, differ.Nested, nodes[0].Type)
+	assert.Equal(t, differ.TypeNested, nodes[0].Type)
 	assert.Len(t, nodes[0].Children, 1)
-	assert.Equal(t, differ.Updated, nodes[0].Children[0].Type)
+	assert.Equal(t, differ.TypeChanged, nodes[0].Children[0].Type)
 }

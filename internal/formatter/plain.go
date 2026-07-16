@@ -1,17 +1,17 @@
-package formatters
+package formatter
 
 import (
 	"fmt"
 	"strings"
 
-	"code/differ"
+	"code/internal/differ"
 )
 
-func plain(nodes []differ.Node) string {
+func plain(nodes []*differ.DiffNode) string {
 	return strings.Join(plainLines(nodes, ""), "\n")
 }
 
-func plainLines(nodes []differ.Node, path string) []string {
+func plainLines(nodes []*differ.DiffNode, path string) []string {
 	var lines []string
 
 	for _, node := range nodes {
@@ -21,20 +21,20 @@ func plainLines(nodes []differ.Node, path string) []string {
 		}
 
 		switch node.Type {
-		case differ.Added:
+		case differ.TypeAdded:
 			lines = append(lines, fmt.Sprintf(
 				"Property '%s' was added with value: %s",
-				property, plainValue(node.NewValue)))
-		case differ.Removed:
+				property, plainValue(node.Value2)))
+		case differ.TypeDeleted:
 			lines = append(lines, fmt.Sprintf(
 				"Property '%s' was removed", property))
-		case differ.Updated:
+		case differ.TypeChanged:
 			lines = append(lines, fmt.Sprintf(
 				"Property '%s' was updated. From %s to %s",
-				property, plainValue(node.OldValue), plainValue(node.NewValue)))
-		case differ.Nested:
+				property, plainValue(node.Value1), plainValue(node.Value2)))
+		case differ.TypeNested:
 			lines = append(lines, plainLines(node.Children, property)...)
-		case differ.Unchanged:
+		case differ.TypeUnchanged:
 		}
 	}
 

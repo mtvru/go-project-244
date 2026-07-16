@@ -9,6 +9,7 @@ import (
 	"github.com/urfave/cli/v3"
 
 	"code"
+	"code/internal/formatter"
 )
 
 func main() {
@@ -23,7 +24,7 @@ func main() {
 			&cli.StringFlag{
 				Name:    "format",
 				Aliases: []string{"f"},
-				Value:   "stylish",
+				Value:   formatter.OutputFormatStylish,
 				Usage:   "output format",
 			},
 		},

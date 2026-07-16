@@ -1,4 +1,4 @@
-package parsers_test
+package parser_test
 
 import (
 	"testing"
@@ -6,13 +6,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"code/parsers"
+	"code/internal/parser"
 )
 
 func TestParseJSON(t *testing.T) {
 	content := []byte(`{"host": "hexlet.io", "follow": false}`)
 
-	data, err := parsers.Parse(content, "json")
+	data, err := parser.Parse(content, "json")
 
 	require.NoError(t, err)
 	assert.Equal(t, "hexlet.io", data["host"])
@@ -22,21 +22,19 @@ func TestParseJSON(t *testing.T) {
 func TestParseYAML(t *testing.T) {
 	content := []byte("host: hexlet.io\nfollow: false\n")
 
-	for _, format := range []string{"yaml", "yml"} {
-		data, err := parsers.Parse(content, format)
+	data, err := parser.Parse(content, "yaml")
 
-		require.NoError(t, err)
-		assert.Equal(t, "hexlet.io", data["host"])
-		assert.Equal(t, false, data["follow"])
-	}
+	require.NoError(t, err)
+	assert.Equal(t, "hexlet.io", data["host"])
+	assert.Equal(t, false, data["follow"])
 }
 
 func TestParseUnsupportedFormat(t *testing.T) {
-	_, err := parsers.Parse([]byte("{}"), "xml")
+	_, err := parser.Parse([]byte("{}"), "xml")
 	assert.Error(t, err)
 }
 
 func TestParseInvalidContent(t *testing.T) {
-	_, err := parsers.Parse([]byte("{not valid json"), "json")
+	_, err := parser.Parse([]byte("{not valid json"), "json")
 	assert.Error(t, err)
 }

@@ -1,4 +1,4 @@
-package formatters_test
+package formatter_test
 
 import (
 	"testing"
@@ -6,21 +6,21 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"code/differ"
-	"code/formatters"
+	"code/internal/differ"
+	"code/internal/formatter"
 )
 
-func sampleNodes() []differ.Node {
-	return []differ.Node{
-		{Key: "added", Type: differ.Added, NewValue: false},
-		{Key: "removed", Type: differ.Removed, OldValue: "gone"},
-		{Key: "same", Type: differ.Unchanged, OldValue: "keep"},
-		{Key: "updated", Type: differ.Updated, OldValue: 1, NewValue: 2},
+func sampleNodes() []*differ.DiffNode {
+	return []*differ.DiffNode{
+		differ.NewAddedNode("added", false),
+		differ.NewDeletedNode("removed", "gone"),
+		differ.NewUnchangedNode("same", "keep"),
+		differ.NewChangedNode("updated", 1, 2),
 	}
 }
 
 func TestFormatStylish(t *testing.T) {
-	result, err := formatters.Format(sampleNodes(), "stylish")
+	result, err := formatter.Format(sampleNodes(), "stylish")
 
 	require.NoError(t, err)
 	expected := "{\n" +
@@ -34,7 +34,7 @@ func TestFormatStylish(t *testing.T) {
 }
 
 func TestFormatPlain(t *testing.T) {
-	result, err := formatters.Format(sampleNodes(), "plain")
+	result, err := formatter.Format(sampleNodes(), "plain")
 
 	require.NoError(t, err)
 	expected := "Property 'added' was added with value: false\n" +
@@ -44,34 +44,29 @@ func TestFormatPlain(t *testing.T) {
 }
 
 func TestFormatJSON(t *testing.T) {
-	result, err := formatters.Format(sampleNodes(), "json")
+	result, err := formatter.Format(sampleNodes(), "json")
 
 	require.NoError(t, err)
+	assert.Contains(t, result, `"type": "root"`)
 	assert.Contains(t, result, `"type": "added"`)
 	assert.Contains(t, result, `"key": "updated"`)
+	assert.Contains(t, result, `"value1": 1`)
+	assert.Contains(t, result, `"value2": 2`)
 }
 
-func nestedNodes() []differ.Node {
-	return []differ.Node{
-		{
-			Key:  "complex",
-			Type: differ.Added,
-			NewValue: map[string]interface{}{
-				"nested": map[string]interface{}{"deep": "x"},
-			},
-		},
-		{
-			Key:  "group",
-			Type: differ.Nested,
-			Children: []differ.Node{
-				{Key: "inner", Type: differ.Unchanged, OldValue: "value"},
-			},
-		},
+func nestedNodes() []*differ.DiffNode {
+	return []*differ.DiffNode{
+		differ.NewAddedNode("complex", map[string]interface{}{
+			"nested": map[string]interface{}{"deep": "x"},
+		}),
+		differ.NewNestedNode("group", []*differ.DiffNode{
+			differ.NewUnchangedNode("inner", "value"),
+		}),
 	}
 }
 
 func TestFormatStylishNested(t *testing.T) {
-	result, err := formatters.Format(nestedNodes(), "stylish")
+	result, err := formatter.Format(nestedNodes(), "stylish")
 
 	require.NoError(t, err)
 	expected := "{\n" +
@@ -88,7 +83,7 @@ func TestFormatStylishNested(t *testing.T) {
 }
 
 func TestFormatPlainNested(t *testing.T) {
-	result, err := formatters.Format(nestedNodes(), "plain")
+	result, err := formatter.Format(nestedNodes(), "plain")
 
 	require.NoError(t, err)
 	expected := "Property 'complex' was added with value: [complex value]"
@@ -96,6 +91,6 @@ func TestFormatPlainNested(t *testing.T) {
 }
 
 func TestFormatUnknown(t *testing.T) {
-	_, err := formatters.Format(sampleNodes(), "toml")
+	_, err := formatter.Format(sampleNodes(), "toml")
 	assert.Error(t, err)
 }

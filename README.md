@@ -30,7 +30,7 @@ The executable will be built at `bin/gendiff`.
 ./bin/gendiff filepath1.json filepath2.json
 
 # explicit format selection
-./bin/gendiff --format plain filepath1.yml filepath2.json
+./bin/gendiff --format plain filepath1.yml filepath2.yml
 ./bin/gendiff --format json filepath1.json filepath2.json
 
 # help
