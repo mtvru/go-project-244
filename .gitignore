@@ -1,0 +1,10 @@
+/bin/
+
+coverage.out
+coverage.xml
+*.test
+
+.env
+
+.idea/
+.vscode/
